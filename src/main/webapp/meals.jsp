@@ -27,24 +27,17 @@
         <th></th>
     </tr>
 
-    <c:set var="meals" value="${requestScope.meals}"/>
-    <c:forEach var="meal" items="${meals}">
-        <c:if test="${meal.isExcess()}">
-            <tr style="color:red;">
-        </c:if>
-        <c:if test="${!meal.isExcess()}">
-            <tr style="color:green;">
-        </c:if>
-
-        <td>
-            <fmt:parseDate pattern="yyyy-MM-dd'T'HH:mm" var="parsedDateTime" type="both"
-                           value="${meal.getDateTime()}"/>
-            <fmt:formatDate pattern="dd.MM.yyyy HH:mm" value="${parsedDateTime}"/>
-        </td>
-        <td><c:out value="${meal.getDescription()}"/></td>
-        <td><c:out value="${meal.getCalories()}"/></td>
-        <td><a href="meals?action=edit&mealId=<c:out value="${meal.getId()}"/>">Update</a></td>
-        <td><a href="meals?action=delete&mealId=<c:out value="${meal.getId()}"/>">Delete</a></td>
+    <c:forEach var="meal" items="${requestScope.meals}">
+        <tr style="color:${meal.isExcess() ? 'red' : 'green'};">
+            <td>
+                <fmt:parseDate pattern="yyyy-MM-dd'T'HH:mm" var="parsedDateTime" type="both"
+                               value="${meal.getDateTime()}"/>
+                <fmt:formatDate pattern="dd.MM.yyyy HH:mm" value="${parsedDateTime}"/>
+            </td>
+            <td><c:out value="${meal.getDescription()}"/></td>
+            <td><c:out value="${meal.getCalories()}"/></td>
+            <td><a href="meals?action=edit&mealId=<c:out value="${meal.getId()}"/>">Update</a></td>
+            <td><a href="meals?action=delete&mealId=<c:out value="${meal.getId()}"/>">Delete</a></td>
         </tr>
     </c:forEach>
 </table>

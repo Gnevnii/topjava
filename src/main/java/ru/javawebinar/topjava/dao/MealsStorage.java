@@ -5,25 +5,25 @@ import ru.javawebinar.topjava.model.Meal;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class MealsStorage {
     public static final int CALORIES_PER_DAY = 2000;
+    private final static AtomicInteger COUNTER = new AtomicInteger(0);
     private static MealsStorage instance = null;
-    private final List<Meal> meals;
+    private final List<Meal> meals = new CopyOnWriteArrayList<>();
 
     private MealsStorage() {
-        List<Meal> mls = new ArrayList<>();
-        mls.add(new Meal(LocalDateTime.of(2020, Month.JANUARY, 30, 10, 0), "Завтрак", 500));
-        mls.add(new Meal(LocalDateTime.of(2020, Month.JANUARY, 30, 13, 0), "Обед", 1000));
-        mls.add(new Meal(LocalDateTime.of(2020, Month.JANUARY, 30, 20, 0), "Ужин", 500));
-        mls.add(new Meal(LocalDateTime.of(2020, Month.JANUARY, 31, 0, 0), "Еда на граничное значение", 100));
-        mls.add(new Meal(LocalDateTime.of(2020, Month.JANUARY, 31, 10, 0), "Завтрак", 1000));
-        mls.add(new Meal(LocalDateTime.of(2020, Month.JANUARY, 31, 13, 0), "Обед", 500));
-        mls.add(new Meal(LocalDateTime.of(2020, Month.JANUARY, 31, 20, 0), "Ужин", 410));
-        meals = Collections.synchronizedList(mls);
+        addMeal(new Meal(LocalDateTime.of(2020, Month.JANUARY, 30, 10, 0), "Завтрак", 500));
+        addMeal(new Meal(LocalDateTime.of(2020, Month.JANUARY, 30, 13, 0), "Обед", 1000));
+        addMeal(new Meal(LocalDateTime.of(2020, Month.JANUARY, 30, 20, 0), "Ужин", 500));
+        addMeal(new Meal(LocalDateTime.of(2020, Month.JANUARY, 31, 0, 0), "Еда на граничное значение", 100));
+        addMeal(new Meal(LocalDateTime.of(2020, Month.JANUARY, 31, 10, 0), "Завтрак", 1000));
+        addMeal(new Meal(LocalDateTime.of(2020, Month.JANUARY, 31, 13, 0), "Обед", 500));
+        addMeal(new Meal(LocalDateTime.of(2020, Month.JANUARY, 31, 20, 0), "Ужин", 410));
     }
 
     public static synchronized MealsStorage getMealStorage() {
@@ -43,6 +43,7 @@ public class MealsStorage {
     }
 
     public void addMeal(final Meal meal) {
+        meal.setId(COUNTER.incrementAndGet());
         meals.add(meal);
     }
 
@@ -51,6 +52,9 @@ public class MealsStorage {
     }
 
     public Meal findById(final Integer mealId) {
-        return meals.stream().filter(meal -> meal.getId().equals(mealId)).findFirst().orElse(null);
+        return meals.stream()
+                .filter(meal -> meal.getId().equals(mealId))
+                .findFirst()
+                .orElse(null);
     }
 }

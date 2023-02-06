@@ -2,8 +2,7 @@ package ru.javawebinar.topjava.web;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.javawebinar.topjava.dao.IMealDao;
-import ru.javawebinar.topjava.dao.MealDao;
+import ru.javawebinar.topjava.dao.InMemoryDao;
 import ru.javawebinar.topjava.dao.MealsStorage;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.model.MealTo;
@@ -20,30 +19,32 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class MealServlet extends HttpServlet {
     private static final Logger log = LoggerFactory.getLogger(MealServlet.class);
     private final static String INSERT_OR_EDIT = "/mealform.jsp";
     private final static String LIST_MEAL = "/meals.jsp";
 
-    private IMealDao mealDao;
+    private InMemoryDao mealDao;
 
     @Override
     public void init() throws ServletException {
         super.init();
-        mealDao = new MealDao();
+        mealDao = new InMemoryDao();
     }
 
     @Override
     protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws IOException, ServletException {
-        String forward = "";
+        String forward;
         String action = request.getParameter("action");
 
         if (action.equalsIgnoreCase("delete")) {
             int mealId = Integer.parseInt(request.getParameter("mealId"));
-            mealDao.deleteMeal(mealId);
+            mealDao.delete(mealId);
             forward = LIST_MEAL;
             request.setAttribute("meals", getAllMeal());
         } else if (action.equalsIgnoreCase("edit")) {
@@ -73,13 +74,13 @@ public class MealServlet extends HttpServlet {
 
         String param = request.getParameter("mealId");
         if (param == null || param.isEmpty()) {
-            mealDao.createMeal(new Meal(dateTime, description, calories));
+            mealDao.create(new Meal(dateTime, description, calories));
         } else {
             final Meal dbMeal = mealDao.getById(Integer.parseInt(param));
             dbMeal.setCalories(calories);
             dbMeal.setDescription(description);
             dbMeal.setDateTime(dateTime);
-            mealDao.updateMeal(dbMeal);
+            mealDao.update(dbMeal);
         }
         RequestDispatcher view = request.getRequestDispatcher(LIST_MEAL);
         request.setAttribute("meals", getAllMeal());
@@ -99,7 +100,10 @@ public class MealServlet extends HttpServlet {
     }
 
     private List<MealTo> getAllMeal() {
-        final List<Meal> meals = mealDao.getAllMeals();
-        return MealsUtil.filteredByStreams(meals, LocalTime.MIN, LocalTime.MAX, MealsStorage.CALORIES_PER_DAY);
+        final List<Meal> meals = mealDao.getAll();
+        return MealsUtil.filteredByStreams(meals, LocalTime.MIN, LocalTime.MAX, MealsStorage.CALORIES_PER_DAY)
+                .stream()
+                .sorted(Comparator.comparing(MealTo::getDateTime))
+                .collect(Collectors.toList());
     }
 }
