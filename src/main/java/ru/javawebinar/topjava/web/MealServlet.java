@@ -90,7 +90,7 @@ public class MealServlet extends HttpServlet {
     private LocalDateTime getDateParameter(final String datetime) {
         final LocalDateTime dateTime;
         try {
-            final Date dateParsed = new SimpleDateFormat("MM/dd/yyyy").parse(datetime);
+            final Date dateParsed = new SimpleDateFormat("yyyy-MM-dd mm:ss").parse(datetime);
             dateTime = dateParsed.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
         } catch (ParseException e) {
             log.error("Error parsing date string:{}", datetime);

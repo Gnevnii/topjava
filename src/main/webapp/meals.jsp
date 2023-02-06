@@ -22,7 +22,7 @@
     <tr>
         <th>Date</th>
         <th>Description</th>
-        <th>DescriptionCalories</th>
+        <th>Calories</th>
         <th></th>
         <th></th>
     </tr>
@@ -32,7 +32,7 @@
             <td>
                 <fmt:parseDate pattern="yyyy-MM-dd'T'HH:mm" var="parsedDateTime" type="both"
                                value="${meal.getDateTime()}"/>
-                <fmt:formatDate pattern="dd.MM.yyyy HH:mm" value="${parsedDateTime}"/>
+                <fmt:formatDate pattern="yyyy-MM-dd HH:mm" value="${parsedDateTime}"/>
             </td>
             <td><c:out value="${meal.getDescription()}"/></td>
             <td><c:out value="${meal.getCalories()}"/></td>

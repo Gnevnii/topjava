@@ -11,10 +11,10 @@
 </head>
 <body>
 <h3><a href="index.html">Home</a></h3>
-<h2>Edit Meal</h2>
+<h2>${meal.getId() == null ? 'Creat meal' : 'Edit meal'}</h2>
 <script>
     $(function() {
-        $('#datetime').datepicker();
+        $('#datetime').dateTimepicker();
     });
 </script>
 
@@ -22,7 +22,7 @@
     <fmt:parseDate pattern="yyyy-MM-dd'T'HH:mm" var="date" type="both"
                    value="${meal.getDateTime()}"/>
     <input type="hidden" name="mealId" value="${meal.getId()}" />
-    DateTime: <input type="text" id="datetime" name="datetime" value="<fmt:formatDate pattern="MM/dd/yyyy" value="${date}"/>" /> <br />
+    DateTime: <input type="text" id="datetime" name="datetime" value="<fmt:formatDate pattern="yyyy-MM-dd mm:ss" value="${date}"/>" /> <br />
     Description: <input type="text" name="description" value="<c:out value="${meal.getDescription()}" />" /> <br />
     Calories: <input type="text" name="calories" value="<c:out value="${meal.getCalories()}" />" /> <br />
 
