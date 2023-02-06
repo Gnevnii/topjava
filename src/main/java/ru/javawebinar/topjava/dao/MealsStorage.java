@@ -26,7 +26,7 @@ public class MealsStorage {
         meals = Collections.synchronizedList(mls);
     }
 
-    public static MealsStorage getMealStorage() {
+    public static synchronized MealsStorage getMealStorage() {
         if (instance == null) {
             instance = new MealsStorage();
         }
