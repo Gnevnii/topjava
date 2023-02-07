@@ -1,10 +1,9 @@
 package ru.javawebinar.topjava.model;
 
-import ru.javawebinar.topjava.util.MealsUtil;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.StringJoiner;
 
 public class Meal {
     private Integer id;
@@ -56,5 +55,15 @@ public class Meal {
 
     public void setCalories(final int calories) {
         this.calories = calories;
+    }
+
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", Meal.class.getSimpleName() + "[", "]")
+                .add("id=" + id)
+                .add("dateTime=" + dateTime)
+                .add("description='" + description + "'")
+                .add("calories=" + calories)
+                .toString();
     }
 }

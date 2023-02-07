@@ -2,108 +2,125 @@ package ru.javawebinar.topjava.web;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.javawebinar.topjava.dao.InMemoryDao;
-import ru.javawebinar.topjava.dao.MealsStorage;
+import ru.javawebinar.topjava.dao.Dao;
+import ru.javawebinar.topjava.dao.InMemoryMealDao;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.model.MealTo;
 import ru.javawebinar.topjava.util.MealsUtil;
-
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.ZoneId;
-import java.util.Comparator;
-import java.util.Date;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.regex.Pattern;
 
 public class MealServlet extends HttpServlet {
     private static final Logger log = LoggerFactory.getLogger(MealServlet.class);
-    private final static String INSERT_OR_EDIT = "/mealform.jsp";
+    private final static String INSERT_OR_EDIT = "/mealForm.jsp";
     private final static String LIST_MEAL = "/meals.jsp";
+    private final static DateTimeFormatter DATE_TIME_FORMATTER = new DateTimeFormatterBuilder()
+            .appendPattern("uuuu-MM-dd HH:mm")
+            .toFormatter();
+    private final static Pattern NUMBER_ONLY_PATTER = Pattern.compile("^[0-9]+$");
 
-    private InMemoryDao mealDao;
+    private Dao<Meal> mealDao;
 
     @Override
-    public void init() throws ServletException {
-        super.init();
-        mealDao = new InMemoryDao();
+    public void init() {
+        mealDao = new InMemoryMealDao();
     }
 
     @Override
-    protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws IOException, ServletException {
-        String forward;
-        String action = request.getParameter("action");
+    protected void doGet(final HttpServletRequest request,
+                         final HttpServletResponse response) throws IOException, ServletException {
+        log.debug("Start method doGet");
 
-        if (action.equalsIgnoreCase("delete")) {
-            int mealId = Integer.parseInt(request.getParameter("mealId"));
-            mealDao.delete(mealId);
-            forward = LIST_MEAL;
-            request.setAttribute("meals", getAllMeal());
-        } else if (action.equalsIgnoreCase("edit")) {
-            forward = INSERT_OR_EDIT;
-            int mealId = Integer.parseInt(request.getParameter("mealId"));
-            Meal meal = mealDao.getById(mealId);
-            request.setAttribute("meal", meal);
-        } else if (action.equalsIgnoreCase("listmeal")) {
-            forward = LIST_MEAL;
-            request.setAttribute("meals", getAllMeal());
-        } else {
-            forward = INSERT_OR_EDIT;
+        String forward;
+        String action = request.getParameter("action") == null ? "" : request.getParameter("action");
+        switch (action) {
+            case "delete": {
+                forward = LIST_MEAL;
+                int mealId = Integer.parseInt(request.getParameter("mealId"));
+                mealDao.delete(mealId);
+                request.setAttribute("meals", getAllMeal());
+                log.debug("Action delete is finished, meal id:{}", mealId);
+                break;
+            }
+            case "edit": {
+                forward = INSERT_OR_EDIT;
+                int mealId = Integer.parseInt(request.getParameter("mealId"));
+                Meal meal = mealDao.getById(mealId);
+                request.setAttribute("meal", meal);
+                log.debug("Start action edit, meal id:{}", mealId);
+                break;
+            }
+            case "insert": {
+                forward = INSERT_OR_EDIT;
+                log.debug("Start action insert");
+                break;
+            }
+            default: {
+                forward = LIST_MEAL;
+                request.setAttribute("meals", getAllMeal());
+                log.debug("Start action show all meals");
+                break;
+            }
         }
 
         RequestDispatcher view = request.getRequestDispatcher(forward);
         view.forward(request, response);
-        log.debug("doGet finished successfully");
+        log.debug("Finish method doGet, forwarded to: {}", forward);
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        log.debug("Start method doPost");
         request.setCharacterEncoding("UTF-8");
-        final String description = request.getParameter("description");
-        final String datetime = request.getParameter("datetime").trim();
-        final int calories = Integer.parseInt(request.getParameter("calories"));
-        final LocalDateTime dateTime = getDateParameter(datetime);
 
-        String param = request.getParameter("mealId");
-        if (param == null || param.isEmpty()) {
-            mealDao.create(new Meal(dateTime, description, calories));
-        } else {
-            final Meal dbMeal = mealDao.getById(Integer.parseInt(param));
-            dbMeal.setCalories(calories);
-            dbMeal.setDescription(description);
-            dbMeal.setDateTime(dateTime);
-            mealDao.update(dbMeal);
+        if (request.getParameter("cancel") != null) {
+            forwardToMealList(request, response);
+            return;
         }
+
+        final String caloriesValue = request.getParameter("calories");
+        final boolean isNumber = NUMBER_ONLY_PATTER.matcher(caloriesValue).matches();
+        if (!isNumber) {
+            log.error("Error parsing input value for calories: {}", caloriesValue);
+            forwardToMealList(request, response);
+            return;
+        }
+
+        final Meal newMeal = new Meal(parseDateTimeParameter(request.getParameter("datetime")),
+                request.getParameter("description"),
+                Integer.parseInt(caloriesValue));
+        String mealId = request.getParameter("mealId");
+        if (mealId == null || mealId.isEmpty()) {
+            mealDao.create(newMeal);
+        } else {
+            newMeal.setId(Integer.parseInt(mealId));
+            mealDao.update(newMeal);
+        }
+        forwardToMealList(request, response);
+    }
+
+    private void forwardToMealList(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
         RequestDispatcher view = request.getRequestDispatcher(LIST_MEAL);
         request.setAttribute("meals", getAllMeal());
         view.forward(request, response);
+        log.debug("doPost finished successfully");
     }
 
-    private LocalDateTime getDateParameter(final String datetime) {
-        final LocalDateTime dateTime;
-        try {
-            final Date dateParsed = new SimpleDateFormat("yyyy-MM-dd mm:ss").parse(datetime);
-            dateTime = dateParsed.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
-        } catch (ParseException e) {
-            log.error("Error parsing date string:{}", datetime);
-            throw new RuntimeException(e);
-        }
-        return dateTime;
+    private LocalDateTime parseDateTimeParameter(final String datetime) {
+        return LocalDateTime.parse(datetime, DATE_TIME_FORMATTER);
     }
 
     private List<MealTo> getAllMeal() {
-        final List<Meal> meals = mealDao.getAll();
-        return MealsUtil.filteredByStreams(meals, LocalTime.MIN, LocalTime.MAX, MealsStorage.CALORIES_PER_DAY)
-                .stream()
-                .sorted(Comparator.comparing(MealTo::getDateTime))
-                .collect(Collectors.toList());
+        return MealsUtil.filteredByStreams(mealDao.getAll(), LocalTime.MIN, LocalTime.MAX, MealsUtil.CALORIES_PER_DAY);
     }
 }

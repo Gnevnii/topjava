@@ -11,23 +11,18 @@
 </head>
 <body>
 <h3><a href="index.html">Home</a></h3>
-<h2>${meal.getId() == null ? 'Creat meal' : 'Edit meal'}</h2>
-<script>
-    $(function() {
-        $('#datetime').dateTimepicker();
-    });
-</script>
+<h2>${meal.id == null ? 'Add meal' : 'Edit meal'}</h2>
 
 <form method="POST" action='meals' name="frmAddMeal">
     <fmt:parseDate pattern="yyyy-MM-dd'T'HH:mm" var="date" type="both"
-                   value="${meal.getDateTime()}"/>
-    <input type="hidden" name="mealId" value="${meal.getId()}" />
-    DateTime: <input type="text" id="datetime" name="datetime" value="<fmt:formatDate pattern="yyyy-MM-dd mm:ss" value="${date}"/>" /> <br />
-    Description: <input type="text" name="description" value="<c:out value="${meal.getDescription()}" />" /> <br />
-    Calories: <input type="text" name="calories" value="<c:out value="${meal.getCalories()}" />" /> <br />
+                   value="${meal.dateTime}"/>
+    <input type="hidden" name="mealId" value="${meal.id}" />
+    DateTime: <input type="text" id="datetime" name="datetime" value="<fmt:formatDate pattern="yyyy-MM-dd HH:mm" value="${date}"/>" /> <br />
+    Description: <input type="text" name="description" value="${meal.description}" /> <br />
+    Calories: <input type="text" name="calories" value="${meal.calories}" /> <br />
 
     <input type="submit" value="Save"/>
-    <input type="submit" value="Cancel"/>
+    <button onclick="window.history.back()" type="button">Cancel</button>
 </form>
 </body>
 </html>

@@ -28,16 +28,16 @@
     </tr>
 
     <c:forEach var="meal" items="${requestScope.meals}">
-        <tr style="color:${meal.isExcess() ? 'red' : 'green'};">
+        <tr style="color:${meal.excess ? 'red' : 'green'};">
             <td>
                 <fmt:parseDate pattern="yyyy-MM-dd'T'HH:mm" var="parsedDateTime" type="both"
-                               value="${meal.getDateTime()}"/>
+                               value="${meal.dateTime}"/>
                 <fmt:formatDate pattern="yyyy-MM-dd HH:mm" value="${parsedDateTime}"/>
             </td>
-            <td><c:out value="${meal.getDescription()}"/></td>
-            <td><c:out value="${meal.getCalories()}"/></td>
-            <td><a href="meals?action=edit&mealId=<c:out value="${meal.getId()}"/>">Update</a></td>
-            <td><a href="meals?action=delete&mealId=<c:out value="${meal.getId()}"/>">Delete</a></td>
+            <td>${meal.description}</td>
+            <td>${meal.calories}</td>
+            <td><a href="meals?action=edit&mealId=${meal.id}">Update</a></td>
+            <td><a href="meals?action=delete&mealId=${meal.id}">Delete</a></td>
         </tr>
     </c:forEach>
 </table>
