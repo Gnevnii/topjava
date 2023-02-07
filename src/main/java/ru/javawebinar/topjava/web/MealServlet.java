@@ -41,14 +41,12 @@ public class MealServlet extends HttpServlet {
                          final HttpServletResponse response) throws IOException, ServletException {
         log.debug("Start method doGet");
 
-        String forward;
+        String forward = "";
         String action = request.getParameter("action") == null ? "" : request.getParameter("action");
         switch (action) {
             case "delete": {
-                forward = LIST_MEAL;
                 int mealId = Integer.parseInt(request.getParameter("mealId"));
                 mealDao.delete(mealId);
-                request.setAttribute("meals", getAllMeal());
                 log.debug("Action delete is finished, meal id:{}", mealId);
                 break;
             }
@@ -73,6 +71,13 @@ public class MealServlet extends HttpServlet {
             }
         }
 
+        if (action.equals("delete")) {
+            request.setAttribute("meals", getAllMeal());
+            response.sendRedirect("meals");
+            log.debug("Finish method doGet, redirect to: {}", forward);
+            return;
+        }
+
         RequestDispatcher view = request.getRequestDispatcher(forward);
         view.forward(request, response);
         log.debug("Finish method doGet, forwarded to: {}", forward);
@@ -84,7 +89,7 @@ public class MealServlet extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
 
         if (request.getParameter("cancel") != null) {
-            forwardToMealList(request, response);
+            redirectToMealList(request, response);
             return;
         }
 
@@ -92,7 +97,7 @@ public class MealServlet extends HttpServlet {
         final boolean isNumber = NUMBER_ONLY_PATTER.matcher(caloriesValue).matches();
         if (!isNumber) {
             log.error("Error parsing input value for calories: {}", caloriesValue);
-            forwardToMealList(request, response);
+            redirectToMealList(request, response);
             return;
         }
 
@@ -106,13 +111,12 @@ public class MealServlet extends HttpServlet {
             newMeal.setId(Integer.parseInt(mealId));
             mealDao.update(newMeal);
         }
-        forwardToMealList(request, response);
+        redirectToMealList(request, response);
     }
 
-    private void forwardToMealList(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
-        RequestDispatcher view = request.getRequestDispatcher(LIST_MEAL);
+    private void redirectToMealList(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
         request.setAttribute("meals", getAllMeal());
-        view.forward(request, response);
+        response.sendRedirect("meals");
         log.debug("doPost finished successfully");
     }
 
