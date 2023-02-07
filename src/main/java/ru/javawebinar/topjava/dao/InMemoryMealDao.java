@@ -7,15 +7,16 @@ import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class InMemoryMealDao implements Dao<Meal> {
     private static final Logger log = LoggerFactory.getLogger(InMemoryMealDao.class);
     private final AtomicInteger counter = new AtomicInteger(0);
-    private final List<Meal> meals = new CopyOnWriteArrayList<>();
+    private final Map<Integer, Meal> meals = Collections.synchronizedMap(new HashMap<>());
 
     public InMemoryMealDao() {
         final List<Meal> allMeal = Arrays.asList(new Meal(LocalDateTime.of(2020, Month.JANUARY, 30, 10, 0), "Завтрак", 500),
@@ -26,54 +27,44 @@ public class InMemoryMealDao implements Dao<Meal> {
                 new Meal(LocalDateTime.of(2020, Month.JANUARY, 31, 13, 0), "Обед", 500),
                 new Meal(LocalDateTime.of(2020, Month.JANUARY, 31, 20, 0), "Ужин", 410));
         for (Meal meal : allMeal) {
-            addMeal(meal);
+            create(meal);
         }
-    }
-
-    private synchronized void addMeal(Meal meal) {
-        meal.setId(counter.incrementAndGet());
-        create(meal);
     }
 
     @Override
     public List<Meal> getAll() {
-        return new ArrayList<>(meals);
+        return new ArrayList<>(meals.values());
     }
 
     @Override
     public Meal update(final Meal object) {
-        meals.stream()
-                .filter(meal -> Objects.equals(meal.getId(), object.getId()))
-                .findFirst()
-                .ifPresent(meals::remove);
-        meals.add(object);
+        if (!meals.containsKey(object.getId())) {
+            log.error("Error. Meal doesn't exit, meal id: {}", object.getId());
+            throw new IllegalArgumentException("Error. Meal doesn't exit, meal id: " + object.getId());
+        }
+
+        meals.put(object.getId(), object);
         log.debug("Method update is finished:{}", object);
-        return getById(object.getId());
+        return object;
     }
 
     @Override
     public Meal create(final Meal object) {
         object.setId(counter.incrementAndGet());
-        meals.add(object);
+        meals.put(object.getId(), object);
         log.debug("Method creat is finished:{}", object);
         return object;
     }
 
     @Override
     public void delete(int objectId) {
-        meals.stream()
-                .filter(meal -> Objects.equals(objectId, meal.getId()))
-                .findFirst()
-                .ifPresent(meals::remove);
+        meals.remove(objectId);
         log.debug("Method delete is finished, id:{}", objectId);
     }
 
     @Override
     public Meal getById(int objectId) {
-        final Meal meal = meals.stream()
-                .filter(m -> Objects.equals(objectId, m.getId()))
-                .findFirst()
-                .orElse(null);
+        final Meal meal = meals.get(objectId);
         log.debug("Method getById is finished, id:{}", meal);
         return meal;
     }

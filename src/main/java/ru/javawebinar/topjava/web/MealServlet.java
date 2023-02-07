@@ -23,9 +23,9 @@ import java.util.regex.Pattern;
 public class MealServlet extends HttpServlet {
     private static final Logger log = LoggerFactory.getLogger(MealServlet.class);
     private final static String INSERT_OR_EDIT = "/mealForm.jsp";
-    private final static String LIST_MEAL = "/meals.jsp";
+    private final static String LIST_MEAL = "/mealsJSP.jsp";
     private final static DateTimeFormatter DATE_TIME_FORMATTER = new DateTimeFormatterBuilder()
-            .appendPattern("uuuu-MM-dd HH:mm")
+            .appendPattern("uuuu-MM-dd'T'HH:mm")
             .toFormatter();
     private final static Pattern NUMBER_ONLY_PATTER = Pattern.compile("^[0-9]+$");
 
@@ -72,7 +72,6 @@ public class MealServlet extends HttpServlet {
         }
 
         if (action.equals("delete")) {
-            request.setAttribute("meals", getAllMeal());
             response.sendRedirect("meals");
             log.debug("Finish method doGet, redirect to: {}", forward);
             return;
@@ -84,20 +83,15 @@ public class MealServlet extends HttpServlet {
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         log.debug("Start method doPost");
         request.setCharacterEncoding("UTF-8");
-
-        if (request.getParameter("cancel") != null) {
-            redirectToMealList(request, response);
-            return;
-        }
 
         final String caloriesValue = request.getParameter("calories");
         final boolean isNumber = NUMBER_ONLY_PATTER.matcher(caloriesValue).matches();
         if (!isNumber) {
             log.error("Error parsing input value for calories: {}", caloriesValue);
-            redirectToMealList(request, response);
+            redirectToMealList(response);
             return;
         }
 
@@ -111,11 +105,10 @@ public class MealServlet extends HttpServlet {
             newMeal.setId(Integer.parseInt(mealId));
             mealDao.update(newMeal);
         }
-        redirectToMealList(request, response);
+        redirectToMealList(response);
     }
 
-    private void redirectToMealList(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
-        request.setAttribute("meals", getAllMeal());
+    private void redirectToMealList(final HttpServletResponse response) throws IOException {
         response.sendRedirect("meals");
         log.debug("doPost finished successfully");
     }

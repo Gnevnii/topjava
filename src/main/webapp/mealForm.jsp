@@ -17,9 +17,9 @@
     <fmt:parseDate pattern="yyyy-MM-dd'T'HH:mm" var="date" type="both"
                    value="${meal.dateTime}"/>
     <input type="hidden" name="mealId" value="${meal.id}" />
-    DateTime: <input type="text" id="datetime" name="datetime" value="<fmt:formatDate pattern="yyyy-MM-dd HH:mm" value="${date}"/>" /> <br />
+    DateTime: <input type="datetime-local" id="datetime" name="datetime" value="<fmt:formatDate pattern="yyyy-MM-dd HH:mm" value="${date}"/>" /> <br />
     Description: <input type="text" name="description" value="${meal.description}" /> <br />
-    Calories: <input type="text" name="calories" value="${meal.calories}" /> <br />
+    Calories: <input type="number" name="calories" value="${meal.calories}" /> <br />
 
     <input type="submit" value="Save"/>
     <button onclick="window.history.back()" type="button">Cancel</button>
