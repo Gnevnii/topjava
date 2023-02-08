@@ -15,17 +15,12 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
 import java.util.List;
 
 public class MealServlet extends HttpServlet {
     private static final Logger log = LoggerFactory.getLogger(MealServlet.class);
     private final static String INSERT_OR_EDIT = "/mealForm.jsp";
     private final static String LIST_MEAL = "/meals.jsp";
-    private final static DateTimeFormatter DATE_TIME_FORMATTER = new DateTimeFormatterBuilder()
-            .appendPattern("uuuu-MM-dd'T'HH:mm")
-            .toFormatter();
 
     private Dao<Meal> mealDao;
 
