@@ -7,13 +7,10 @@ import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
 
 public class InMemoryMealDao implements Dao<Meal> {
     private static final Logger log = LoggerFactory.getLogger(InMemoryMealDao.class);
@@ -39,7 +36,7 @@ public class InMemoryMealDao implements Dao<Meal> {
 
     @Override
     public Meal update(final Meal object) {
-        meals.putIfAbsent(object.getId(), object);
+        meals.computeIfPresent(object.getId(), (integer, meal) -> meal);
         log.debug("Method update is finished:{}", object);
         return object;
     }
