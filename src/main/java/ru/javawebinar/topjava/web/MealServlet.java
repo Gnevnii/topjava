@@ -23,11 +23,10 @@ import java.util.regex.Pattern;
 public class MealServlet extends HttpServlet {
     private static final Logger log = LoggerFactory.getLogger(MealServlet.class);
     private final static String INSERT_OR_EDIT = "/mealForm.jsp";
-    private final static String LIST_MEAL = "/mealsJSP.jsp";
+    private final static String LIST_MEAL = "/meals.jsp";
     private final static DateTimeFormatter DATE_TIME_FORMATTER = new DateTimeFormatterBuilder()
             .appendPattern("uuuu-MM-dd'T'HH:mm")
             .toFormatter();
-    private final static Pattern NUMBER_ONLY_PATTER = Pattern.compile("^[0-9]+$");
 
     private Dao<Meal> mealDao;
 
@@ -42,13 +41,15 @@ public class MealServlet extends HttpServlet {
         log.debug("Start method doGet");
 
         String forward = "";
-        String action = request.getParameter("action") == null ? "" : request.getParameter("action");
+        final String actionParameter = request.getParameter("action");
+        String action = actionParameter == null ? "" : actionParameter;
         switch (action) {
             case "delete": {
                 int mealId = Integer.parseInt(request.getParameter("mealId"));
                 mealDao.delete(mealId);
-                log.debug("Action delete is finished, meal id:{}", mealId);
-                break;
+                response.sendRedirect("meals");
+                log.debug("Finish method doGet, redirect to: /meals");
+                return;
             }
             case "edit": {
                 forward = INSERT_OR_EDIT;
@@ -71,12 +72,6 @@ public class MealServlet extends HttpServlet {
             }
         }
 
-        if (action.equals("delete")) {
-            response.sendRedirect("meals");
-            log.debug("Finish method doGet, redirect to: {}", forward);
-            return;
-        }
-
         RequestDispatcher view = request.getRequestDispatcher(forward);
         view.forward(request, response);
         log.debug("Finish method doGet, forwarded to: {}", forward);
@@ -88,13 +83,6 @@ public class MealServlet extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
 
         final String caloriesValue = request.getParameter("calories");
-        final boolean isNumber = NUMBER_ONLY_PATTER.matcher(caloriesValue).matches();
-        if (!isNumber) {
-            log.error("Error parsing input value for calories: {}", caloriesValue);
-            redirectToMealList(response);
-            return;
-        }
-
         final Meal newMeal = new Meal(parseDateTimeParameter(request.getParameter("datetime")),
                 request.getParameter("description"),
                 Integer.parseInt(caloriesValue));
@@ -114,7 +102,7 @@ public class MealServlet extends HttpServlet {
     }
 
     private LocalDateTime parseDateTimeParameter(final String datetime) {
-        return LocalDateTime.parse(datetime, DATE_TIME_FORMATTER);
+        return LocalDateTime.parse(datetime);
     }
 
     private List<MealTo> getAllMeal() {
