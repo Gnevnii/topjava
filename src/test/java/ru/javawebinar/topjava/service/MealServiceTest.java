@@ -6,6 +6,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlConfig;
@@ -106,5 +107,13 @@ public class MealServiceTest {
         final Meal meal = mealService.create(newMeal, UserTestData.USER_ID);
         newMeal.setId(meal.getId());
         MealTestData.assertMatch(meal, newMeal);
+    }
+
+    @Test
+    public void createDuplicateDateMeal() {
+        final Meal meal = mealService.get(MealTestData.GET_MEAL_ID, UserTestData.USER_ID);
+        final Meal duplicate = MealTestData.getNew();
+        duplicate.setDateTime(meal.getDateTime());
+        Assert.assertThrows(DuplicateKeyException.class, () -> mealService.create(duplicate, UserTestData.USER_ID));
     }
 }
