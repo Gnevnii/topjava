@@ -47,9 +47,19 @@ public class MealServiceTest {
     }
 
     @Test
+    public void getNotMy() {
+        Assert.assertThrows(NotFoundException.class, () -> mealService.get(MealTestData.GET_MEAL_ID, UserTestData.ADMIN_ID));
+    }
+
+    @Test
     public void delete() {
         mealService.delete(MealTestData.DELETE_MEAL_ID, UserTestData.USER_ID);
         Assert.assertThrows(NotFoundException.class, () -> mealService.get(MealTestData.DELETE_MEAL_ID, UserTestData.USER_ID));
+    }
+
+    @Test
+    public void deleteNotMy() {
+        Assert.assertThrows(NotFoundException.class, () -> mealService.delete(MealTestData.DELETE_MEAL_ID, UserTestData.GUEST_ID));
     }
 
     @Test
@@ -81,6 +91,13 @@ public class MealServiceTest {
         mealService.update(updated, UserTestData.USER_ID);
         final Meal actual = mealService.get(meal.getId(), UserTestData.USER_ID);
         MealTestData.assertMatch(actual, updated);
+    }
+
+    @Test
+    public void updateNotMy() {
+        final Meal meal = mealService.get(MealTestData.GET_MEAL_ID, UserTestData.USER_ID);
+        final Meal updated = MealTestData.getUpdated(meal);
+        Assert.assertThrows(NotFoundException.class, () -> mealService.update(updated, UserTestData.GUEST_ID));
     }
 
     @Test
