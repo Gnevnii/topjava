@@ -70,7 +70,7 @@ public class JdbcMealRepository implements MealRepository {
 
     @Override
     public List<Meal> getAll(int userId) {
-        return jdbcTemplate.query("SELECT * FROM meals WHERE user_id=?", ROW_MAPPER, userId).stream()
+        return jdbcTemplate.query("SELECT * FROM meals WHERE user_id=? ORDER BY date_time desc", ROW_MAPPER, userId).stream()
                 .sorted(Comparator.comparing(Meal::getDateTime).reversed())
                 .collect(Collectors.toList());
     }
@@ -81,7 +81,8 @@ public class JdbcMealRepository implements MealRepository {
         params.put("from", java.sql.Timestamp.valueOf(startDateTime));
         params.put("to", java.sql.Timestamp.valueOf(endDateTime));
         params.put("userId", userId);
-        return namedParameterJdbcTemplate.query("SELECT * FROM meals WHERE user_id=:userId AND date_time >= :from AND date_time < :to",
+        return namedParameterJdbcTemplate.query("SELECT * FROM meals WHERE user_id=:userId AND date_time >= :from AND date_time < :to" +
+                        " ORDER BY date_time desc",
                 params, ROW_MAPPER);
     }
 }
