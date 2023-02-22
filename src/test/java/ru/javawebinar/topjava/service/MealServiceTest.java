@@ -43,13 +43,13 @@ public class MealServiceTest {
 
     @Test
     public void get() {
-        final Meal actual = mealService.get(MealTestData.USER_BREAKFAST_ID, UserTestData.USER_ID);
-        MealTestData.assertMatch(actual, MealTestData.USER_BREAKFAST);
+        final Meal actual = mealService.get(MealTestData.userBreakfast.getId(), UserTestData.USER_ID);
+        MealTestData.assertMatch(actual, MealTestData.userBreakfast);
     }
 
     @Test
     public void getNotMy() {
-        Assert.assertThrows(NotFoundException.class, () -> mealService.get(MealTestData.USER_BREAKFAST_ID, UserTestData.ADMIN_ID));
+        Assert.assertThrows(NotFoundException.class, () -> mealService.get(MealTestData.userBreakfast.getId(), UserTestData.ADMIN_ID));
     }
 
     @Test
@@ -59,8 +59,8 @@ public class MealServiceTest {
 
     @Test
     public void delete() {
-        mealService.delete(MealTestData.USER_BREAKFAST_ID, UserTestData.USER_ID);
-        Assert.assertThrows(NotFoundException.class, () -> mealService.get(MealTestData.USER_BREAKFAST_ID, UserTestData.USER_ID));
+        mealService.delete(MealTestData.userBreakfast.getId(), UserTestData.USER_ID);
+        Assert.assertThrows(NotFoundException.class, () -> mealService.get(MealTestData.userBreakfast.getId(), UserTestData.USER_ID));
     }
 
     @Test
@@ -70,7 +70,7 @@ public class MealServiceTest {
 
     @Test
     public void deleteNotMy() {
-        Assert.assertThrows(NotFoundException.class, () -> mealService.delete(MealTestData.USER_BREAKFAST_ID, UserTestData.ADMIN_ID));
+        Assert.assertThrows(NotFoundException.class, () -> mealService.delete(MealTestData.userBreakfast.getId(), UserTestData.ADMIN_ID));
     }
 
     @Test
@@ -97,7 +97,7 @@ public class MealServiceTest {
 
     @Test
     public void update() {
-        final Meal meal = mealService.get(MealTestData.USER_BREAKFAST_ID, UserTestData.USER_ID);
+        final Meal meal = mealService.get(MealTestData.userBreakfast.getId(), UserTestData.USER_ID);
         final Meal updated = MealTestData.getUpdated(meal);
         mealService.update(updated, UserTestData.USER_ID);
         final Meal actual = mealService.get(meal.getId(), UserTestData.USER_ID);
@@ -106,7 +106,7 @@ public class MealServiceTest {
 
     @Test
     public void updateNotMy() {
-        final Meal meal = mealService.get(MealTestData.USER_BREAKFAST_ID, UserTestData.USER_ID);
+        final Meal meal = mealService.get(MealTestData.userBreakfast.getId(), UserTestData.USER_ID);
         final Meal updated = MealTestData.getUpdated(meal);
         Assert.assertThrows(NotFoundException.class, () -> mealService.update(updated, UserTestData.GUEST_ID));
     }
@@ -121,7 +121,7 @@ public class MealServiceTest {
 
     @Test
     public void createDuplicateDateMeal() {
-        final Meal meal = mealService.get(MealTestData.USER_BREAKFAST_ID, UserTestData.USER_ID);
+        final Meal meal = mealService.get(MealTestData.userBreakfast.getId(), UserTestData.USER_ID);
         final Meal duplicate = MealTestData.getNew();
         duplicate.setDateTime(meal.getDateTime());
         Assert.assertThrows(DuplicateKeyException.class, () -> mealService.create(duplicate, UserTestData.USER_ID));
