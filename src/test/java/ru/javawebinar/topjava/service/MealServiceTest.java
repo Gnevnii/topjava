@@ -43,29 +43,39 @@ public class MealServiceTest {
 
     @Test
     public void get() {
-        final Meal actual = mealService.get(MealTestData.GET_MEAL_ID, UserTestData.USER_ID);
-        MealTestData.assertMatch(actual, MealTestData.GET_MEAL);
+        final Meal actual = mealService.get(MealTestData.USER_BREAKFAST_ID, UserTestData.USER_ID);
+        MealTestData.assertMatch(actual, MealTestData.USER_BREAKFAST);
     }
 
     @Test
     public void getNotMy() {
-        Assert.assertThrows(NotFoundException.class, () -> mealService.get(MealTestData.GET_MEAL_ID, UserTestData.ADMIN_ID));
+        Assert.assertThrows(NotFoundException.class, () -> mealService.get(MealTestData.USER_BREAKFAST_ID, UserTestData.ADMIN_ID));
+    }
+
+    @Test
+    public void getNotFound() {
+        Assert.assertThrows(NotFoundException.class, () -> mealService.get(MealTestData.NOT_EXIST_ID, UserTestData.ADMIN_ID));
     }
 
     @Test
     public void delete() {
-        mealService.delete(MealTestData.DELETE_MEAL_ID, UserTestData.USER_ID);
-        Assert.assertThrows(NotFoundException.class, () -> mealService.get(MealTestData.DELETE_MEAL_ID, UserTestData.USER_ID));
+        mealService.delete(MealTestData.USER_BREAKFAST_ID, UserTestData.USER_ID);
+        Assert.assertThrows(NotFoundException.class, () -> mealService.get(MealTestData.USER_BREAKFAST_ID, UserTestData.USER_ID));
+    }
+
+    @Test
+    public void deleteNotFound() {
+        Assert.assertThrows(NotFoundException.class, () -> mealService.delete(MealTestData.NOT_EXIST_ID, UserTestData.ADMIN_ID));
     }
 
     @Test
     public void deleteNotMy() {
-        Assert.assertThrows(NotFoundException.class, () -> mealService.delete(MealTestData.DELETE_MEAL_ID, UserTestData.GUEST_ID));
+        Assert.assertThrows(NotFoundException.class, () -> mealService.delete(MealTestData.USER_BREAKFAST_ID, UserTestData.ADMIN_ID));
     }
 
     @Test
     public void getBetweenInclusive() {
-        final List<Meal> meals = new ArrayList<>(MealTestData.meals);
+        final List<Meal> meals = new ArrayList<>(MealTestData.userMeals.get(UserTestData.USER_ID));
         final LocalDate maxDate = meals.get(0).getDateTime().toLocalDate();
         final LocalDate minDate = meals.get(meals.size() - 1).getDateTime().toLocalDate();
 
@@ -80,14 +90,14 @@ public class MealServiceTest {
     @Test
     public void getAll() {
         final List<Meal> actual = mealService.getAll(UserTestData.USER_ID);
-        final List<Meal> expected = MealTestData.meals;
+        final List<Meal> expected = MealTestData.userMeals.get(UserTestData.USER_ID);
         expected.sort(Comparator.comparing(Meal::getDateTime).reversed());
         MealTestData.assertMatch(actual, expected);
     }
 
     @Test
     public void update() {
-        final Meal meal = mealService.get(MealTestData.GET_MEAL_ID, UserTestData.USER_ID);
+        final Meal meal = mealService.get(MealTestData.USER_BREAKFAST_ID, UserTestData.USER_ID);
         final Meal updated = MealTestData.getUpdated(meal);
         mealService.update(updated, UserTestData.USER_ID);
         final Meal actual = mealService.get(meal.getId(), UserTestData.USER_ID);
@@ -96,7 +106,7 @@ public class MealServiceTest {
 
     @Test
     public void updateNotMy() {
-        final Meal meal = mealService.get(MealTestData.GET_MEAL_ID, UserTestData.USER_ID);
+        final Meal meal = mealService.get(MealTestData.USER_BREAKFAST_ID, UserTestData.USER_ID);
         final Meal updated = MealTestData.getUpdated(meal);
         Assert.assertThrows(NotFoundException.class, () -> mealService.update(updated, UserTestData.GUEST_ID));
     }
@@ -111,7 +121,7 @@ public class MealServiceTest {
 
     @Test
     public void createDuplicateDateMeal() {
-        final Meal meal = mealService.get(MealTestData.GET_MEAL_ID, UserTestData.USER_ID);
+        final Meal meal = mealService.get(MealTestData.USER_BREAKFAST_ID, UserTestData.USER_ID);
         final Meal duplicate = MealTestData.getNew();
         duplicate.setDateTime(meal.getDateTime());
         Assert.assertThrows(DuplicateKeyException.class, () -> mealService.create(duplicate, UserTestData.USER_ID));
