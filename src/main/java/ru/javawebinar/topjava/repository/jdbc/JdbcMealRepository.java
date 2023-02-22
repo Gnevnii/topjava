@@ -40,7 +40,7 @@ public class JdbcMealRepository implements MealRepository {
         if (meal.isNew()) {
             meal.setId(jdbcInsert.executeAndReturnKey(getMap(meal, userId)).intValue());
         } else if (namedParameterJdbcTemplate.update("UPDATE meals SET description=:description," +
-                " calories=:calories, datetime=:dateTime where meals.id=:id and user_id=:user_id", getMap(meal, userId)) == 0){
+                " calories=:calories, date_time=:dateTime where meals.id=:id and user_id=:user_id", getMap(meal, userId)) == 0){
             return null;
         }
         return meal;
@@ -81,7 +81,7 @@ public class JdbcMealRepository implements MealRepository {
         params.put("from", java.sql.Timestamp.valueOf(startDateTime));
         params.put("to", java.sql.Timestamp.valueOf(endDateTime));
         params.put("userId", userId);
-        return namedParameterJdbcTemplate.query("SELECT * FROM meals WHERE user_id=:userId AND dateTime >= :from AND dateTime < :to",
+        return namedParameterJdbcTemplate.query("SELECT * FROM meals WHERE user_id=:userId AND date_time >= :from AND date_time < :to",
                 params, ROW_MAPPER);
     }
 }
