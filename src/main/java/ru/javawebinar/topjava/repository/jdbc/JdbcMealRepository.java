@@ -81,7 +81,7 @@ public class JdbcMealRepository implements MealRepository {
         params.put("from", java.sql.Timestamp.valueOf(startDateTime));
         params.put("to", java.sql.Timestamp.valueOf(endDateTime));
         params.put("userId", userId);
-        return namedParameterJdbcTemplate.query("SELECT * FROM meals WHERE user_id=:userId AND dateTime > :from AND dateTime <= :to",
+        return namedParameterJdbcTemplate.query("SELECT * FROM meals WHERE user_id=:userId AND dateTime >= :from AND dateTime < :to",
                 params, ROW_MAPPER);
     }
 }
