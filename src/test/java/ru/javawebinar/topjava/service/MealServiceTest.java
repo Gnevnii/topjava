@@ -18,7 +18,6 @@ import ru.javawebinar.topjava.util.exception.NotFoundException;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 
 @ContextConfiguration({
@@ -76,14 +75,14 @@ public class MealServiceTest {
     @Test
     public void getBetweenInclusive() {
         final List<Meal> meals = new ArrayList<>(MealTestData.userMeals.get(UserTestData.USER_ID));
-        final LocalDate maxDate = meals.get(0).getDateTime().toLocalDate();
-        final LocalDate minDate = meals.get(meals.size() - 1).getDateTime().toLocalDate();
+        final LocalDate latestMealDT = MealTestData.LATEST_MEAL_DATE_TIME.toLocalDate();
+        final LocalDate beforeFirstMealDT = MealTestData.FIRST_MEAL_DATE_TIME.minusDays(1).toLocalDate();
 
-        List<Meal> actual = mealService.getBetweenInclusive(minDate, maxDate.plusDays(1), UserTestData.USER_ID);
+        List<Meal> actual = mealService.getBetweenInclusive(beforeFirstMealDT, latestMealDT.plusDays(1), UserTestData.USER_ID);
         MealTestData.assertMatch(actual, meals);
 
-        actual = mealService.getBetweenInclusive(minDate, minDate, UserTestData.USER_ID);
-        meals.removeIf(meal -> !meal.getDateTime().toLocalDate().equals(minDate));
+        actual = mealService.getBetweenInclusive(beforeFirstMealDT, beforeFirstMealDT, UserTestData.USER_ID);
+        meals.removeIf(meal -> !meal.getDateTime().toLocalDate().equals(beforeFirstMealDT));
         MealTestData.assertMatch(actual, meals);
     }
 
@@ -91,39 +90,35 @@ public class MealServiceTest {
     public void getAll() {
         final List<Meal> actual = mealService.getAll(UserTestData.USER_ID);
         final List<Meal> expected = MealTestData.userMeals.get(UserTestData.USER_ID);
-        expected.sort(Comparator.comparing(Meal::getDateTime).reversed());
         MealTestData.assertMatch(actual, expected);
     }
 
     @Test
     public void update() {
-        final Meal meal = mealService.get(MealTestData.userBreakfast.getId(), UserTestData.USER_ID);
-        final Meal updated = MealTestData.getUpdated(meal);
+        final Meal updated = MealTestData.getUpdated(MealTestData.userBreakfast);
         mealService.update(updated, UserTestData.USER_ID);
-        final Meal actual = mealService.get(meal.getId(), UserTestData.USER_ID);
-        MealTestData.assertMatch(actual, updated);
+        MealTestData.assertMatch(mealService.get(updated.getId(), UserTestData.USER_ID), MealTestData.getUpdated(MealTestData.userBreakfast));
     }
 
     @Test
     public void updateNotMy() {
-        final Meal meal = mealService.get(MealTestData.userBreakfast.getId(), UserTestData.USER_ID);
-        final Meal updated = MealTestData.getUpdated(meal);
+        final Meal updated = MealTestData.getUpdated(MealTestData.userBreakfast);
         Assert.assertThrows(NotFoundException.class, () -> mealService.update(updated, UserTestData.GUEST_ID));
     }
 
     @Test
     public void create() {
-        final Meal newMeal = MealTestData.getNew();
-        final Meal meal = mealService.create(newMeal, UserTestData.USER_ID);
-        newMeal.setId(meal.getId());
-        MealTestData.assertMatch(meal, newMeal);
+        final Meal meal = mealService.create(MealTestData.getNew(), UserTestData.USER_ID);
+        final Meal expected = MealTestData.getNew();
+        expected.setId(meal.getId());
+        MealTestData.assertMatch(meal, expected);
+        MealTestData.assertMatch(mealService.get(meal.getId(), UserTestData.USER_ID), expected);
     }
 
     @Test
     public void createDuplicateDateMeal() {
-        final Meal meal = mealService.get(MealTestData.userBreakfast.getId(), UserTestData.USER_ID);
         final Meal duplicate = MealTestData.getNew();
-        duplicate.setDateTime(meal.getDateTime());
+        duplicate.setDateTime(MealTestData.userBreakfast.getDateTime());
         Assert.assertThrows(DuplicateKeyException.class, () -> mealService.create(duplicate, UserTestData.USER_ID));
     }
 }
